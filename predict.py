@@ -20,10 +20,20 @@ def get_model():
     global _model
     if _model is None:
         if not os.path.exists(MODEL_PATH):
-            raise FileNotFoundError(
-                f"Model not found at {MODEL_PATH}. "
-                "Please run: python train_ai.py"
-            )
+            try:
+                from model_downloader import download_model
+                print("[MODEL] Not found locally, attempting auto-download...")
+                success = download_model()
+                if not success:
+                    raise FileNotFoundError(
+                        f"Model not found at {MODEL_PATH} and download failed. "
+                        "Please set MODEL_GDRIVE_ID in Render environment variables."
+                    )
+            except ImportError:
+                raise FileNotFoundError(
+                    f"Model not found at {MODEL_PATH}. "
+                    "Please run: python train_ai.py"
+                )
         # compile=False avoids optimizer header mismatch error
         _model = tf.keras.models.load_model(MODEL_PATH, compile=False)
     return _model
